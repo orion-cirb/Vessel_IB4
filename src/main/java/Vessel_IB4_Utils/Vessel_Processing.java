@@ -628,19 +628,16 @@ public class Vessel_Processing {
         ImagePlus imgLabels = star.associateLabels(imgOut);
         imgLabels.setCalibration(cal); 
         closeImages(imgOut);
-        ArrayList<Roi> roiToFill = new ArrayList();
         Objects3DIntPopulation pop = new Objects3DIntPopulation();
         if (rois != null) {
-            if (!roiToFill.isEmpty()) {
-                ClearCLBuffer imgCl = clij2.push(imgLabels);
-                ClearCLBuffer fillImg = fillImg(imgCl, rois);
-                clij2.release(imgCl);
-                ImagePlus imgFill = clij2.pull(fillImg);
-                clij2.release(fillImg);
-                imgFill.setCalibration(cal);
-                pop = new Objects3DIntPopulation(ImageHandler.wrap(imgFill));
-                closeImages(imgFill);
-            }
+            ClearCLBuffer imgCl = clij2.push(imgLabels);
+            ClearCLBuffer fillImg = fillImg(imgCl, rois);
+            clij2.release(imgCl);
+            ImagePlus imgFill = clij2.pull(fillImg);
+            clij2.release(fillImg);
+            imgFill.setCalibration(cal);
+            pop = new Objects3DIntPopulation(ImageHandler.wrap(imgFill));
+            closeImages(imgFill);
         }
         else 
             pop = new Objects3DIntPopulation(ImageHandler.wrap(imgLabels));

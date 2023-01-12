@@ -80,7 +80,7 @@ public class Vessel_IB4 implements PlugIn {
                 }
                 
                  // initialize results files
-                FileWriter  fwAnalyze_detail = new FileWriter(outDirResults +"_results.xls",false);
+                FileWriter  fwAnalyze_detail = new FileWriter(outDirResults +"results.xls",false);
                 BufferedWriter results = new BufferedWriter(fwAnalyze_detail);
                 process.InitResults(results);
                 
