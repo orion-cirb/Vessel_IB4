@@ -28,4 +28,4 @@
 
 ### Version history
 
-Version 1 released on January 11, 2023.
+Version 1 released on January 12, 2023.
