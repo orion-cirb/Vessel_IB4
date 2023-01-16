@@ -5,23 +5,20 @@
 * **Date:** January 2023
 * **Software:** Fiji
 
-
-
 ### Images description
 
 3D images.
 
-3 channels:
+2 channels:
   1. *Alexa Fluor 561:* RNA dots
   2. *Alexa Fluor 642:* IB4 vessels
-  3. *Alexa Fluor 405:* DAPI nuclei
 
 ### Plugin description
 
-* Detect Vessel and RNA
-* Find RNA in / out vessel after dilatation
-* Measure vessel volume, RNA in/out volume and intensity
-* Version without calibration procedure to quantify single dot RNA
+* Detect vessels with LoG + thresholding
+* Detect RNA dots with Stardist
+* Find RNA in/out dilated vessels
+* Measure vessels volume + RNA dots volume and intensity in/out vessels
 
 ### Dependencies
 
