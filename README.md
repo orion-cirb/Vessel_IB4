@@ -9,7 +9,7 @@
 
 ### Images description
 
-3D images taken with a x objective
+3D images.
 
 3 channels:
   1. *Alexa Fluor 561:* RNA dots
