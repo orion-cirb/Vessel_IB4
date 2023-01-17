@@ -106,10 +106,13 @@ public class Vessel_IB4 implements PlugIn {
                     // Check if rois file exist, keep rois to clear regions containing "artefacts"
                     ArrayList<Roi> rois = new ArrayList<>();
                     String roiFile = imageDir + File.separator+rootName + ".zip";
-
-                    if (new File(roiFile).exists()) {
+                    RoiManager rm = RoiManager.getInstance();
+                    if (!new File(roiFile).exists()) {
+                        roiFile = imageDir + File.separator+rootName + ".roi";
+                        if (new File(roiFile).exists())
+                        
                         // Find rois
-                        RoiManager rm = RoiManager.getInstance();
+                        
                         if (rm != null)
                             rm.reset();
                         else
