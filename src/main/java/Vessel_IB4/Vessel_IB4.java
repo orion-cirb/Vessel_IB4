@@ -47,7 +47,7 @@ public class Vessel_IB4 implements PlugIn {
                     return;
                 }
                 // Find images with extension
-                String file_ext = process.findImageType(new File(imageDir));
+                String file_ext = "nd";
                 ArrayList<String> imageFiles = process.findImages(imageDir, file_ext);
 
                 if (imageFiles == null) {

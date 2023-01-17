@@ -565,8 +565,8 @@ public class Vessel_Processing {
     
     public void InitResults(BufferedWriter results) throws IOException {
         // write results headers
-        results.write("Image Name\tImage background\tVessel volume\tGeneX in vessel\tGeneX Volume in vessel\t"
-                + "GeneX Intensity sum in vessel\tNormalized GeneX Intensity sum in vessel\tGeneX out vessel\tGeneX Volume out vessel\tGeneX Intensity sum out vessel"
+        results.write("Image Name\tImage background (median of min intensity stack)\tVessel volume (µm3)\tGeneX in vessel\tGeneX Volume in vessel (µm3)\t"
+                + "GeneX Intensity sum in vessel\tNormalized GeneX Intensity sum in vessel\tGeneX out vessel\tGeneX Volume out vessel (µm3)\tGeneX Intensity sum out vessel"
                 + "\tNornalized GeneX out vessel\n");
         results.flush();
     }
@@ -591,8 +591,10 @@ public class Vessel_Processing {
         for (Object3DInt ob : vesselsPop.getObjects3DInt()) 
                 ob.drawObject(imgVessels, 255);
         // draw genes In / Out population
-        genesXIn.drawInImage(imgGenesIn);
-        genesXOut.drawInImage(imgGenesOut);
+        for (Object3DInt ob : genesXIn.getObjects3DInt()) 
+                ob.drawObject(imgVessels, 255);
+        for (Object3DInt ob : genesXOut.getObjects3DInt()) 
+                ob.drawObject(imgVessels, 255);
         ImagePlus[] imgColors = {imgGenesIn.getImagePlus(), imgGenesOut.getImagePlus(), imgVessels.getImagePlus()};
         ImagePlus imgObjects = new RGBStackMerge().mergeHyperstacks(imgColors, false);
         imgObjects.setCalibration(cal);
