@@ -592,9 +592,9 @@ public class Vessel_Processing {
                 ob.drawObject(imgVessels, 255);
         // draw genes In / Out population
         for (Object3DInt ob : genesXIn.getObjects3DInt()) 
-                ob.drawObject(imgVessels, 255);
+                ob.drawObject(imgGenesIn, 255);
         for (Object3DInt ob : genesXOut.getObjects3DInt()) 
-                ob.drawObject(imgVessels, 255);
+                ob.drawObject(imgGenesOut, 255);
         ImagePlus[] imgColors = {imgGenesIn.getImagePlus(), imgGenesOut.getImagePlus(), imgVessels.getImagePlus()};
         ImagePlus imgObjects = new RGBStackMerge().mergeHyperstacks(imgColors, false);
         imgObjects.setCalibration(cal);
