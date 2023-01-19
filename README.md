@@ -19,6 +19,7 @@
 * Detect RNA dots with Stardist
 * Find RNA in/out dilated vessels
 * Measure vessels volume + RNA dots volume and intensity in/out vessels
+* If ROI(s) provided, remove from the analysis vessels and dots that are inside 
 
 ### Dependencies
 
@@ -28,4 +29,4 @@
 
 ### Version history
 
-Version 1 released on January 17, 2023.
+Version 1 released on January 19, 2023.
