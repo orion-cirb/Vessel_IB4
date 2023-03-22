@@ -8,6 +8,7 @@ import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
+import ij.gui.WaitForUserDialog;
 import ij.io.FileSaver;
 import ij.measure.Calibration;
 import ij.plugin.Duplicator;
@@ -68,7 +69,7 @@ public class Vessel_Processing {
     public double minVesselVol = 5000, maxVesselVol = Double.MAX_VALUE;;
     public Calibration cal = new Calibration();
     private double pixVol = 0;
-    private String urlHelp = "https://orion-cirb@github.com/orion-cirb/Vessel_IB4.git";
+    private String urlHelp = "https://github.com/orion-cirb/Vessel_IB4.git";
 
     
     private CLIJ2 clij2 = CLIJ2.getInstance();
