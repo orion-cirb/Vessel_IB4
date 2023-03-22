@@ -15,18 +15,20 @@
 
 ### Plugin description
 
+* if roi(s) exist fill roi(s) with zero
 * Detect vessels with LoG + thresholding
-* Detect RNA dots with Stardist
+* Detect RNA dots with DOG and threshold
 * Find RNA in/out dilated vessels
 * Measure vessels volume + RNA dots volume and intensity in/out vessels
-* If ROI(s) provided, remove from the analysis vessels and dots that are inside 
 
 ### Dependencies
 
 * **3DImageSuite** Fiji plugin
 * **CLIJ** Fiji plugin
-* **Stardist** conda environment + *fociRNA-1.2.zip* model
 
 ### Version history
 
-Version 1 released on January 19, 2023.
+Version 1 released on January 12, 2023.
+Modified 22 mars 2023 to :
+  * read nd/nd2
+  * Ask for foci thresholding method
