@@ -15,11 +15,11 @@
 
 ### Plugin description
 
-* if roi(s) exist fill roi(s) with zero
 * Detect vessels with LoG + thresholding
-* Detect RNA dots with DOG and threshold
-* Find RNA in/out dilated vessels
+* Detect RNA dots with DoG + thresholding
+* Find RNA dots in/out dilated vessels
 * Measure vessels volume + RNA dots volume and intensity in/out vessels
+* If ROI(s) provided, remove from the analysis vessels and RNA dots that are inside
 
 ### Dependencies
 
@@ -28,7 +28,8 @@
 
 ### Version history
 
-Version 1 released on January 12, 2023.
-Modified 22 mars 2023 to :
-  * read nd/nd2
-  * Ask for foci thresholding method
+Version 1 released on January 19, 2023.
+Modified on March 2022, 2023:
+  * Read nd/nd2 files
+  * Detect RNA dots with DoG + thresholding instead of Stardist
+  * Ask for RNA dots thresholding method in dialog box
