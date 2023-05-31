@@ -30,7 +30,7 @@
 
 Version 1 released on January 19, 2023.
 
-Modified on March 2022, 2023:
+Modified on March 22, 2023:
   * Read nd/nd2 files
   * Detect RNA dots with DoG + thresholding instead of Stardist
   * Ask for RNA dots thresholding method in dialog box
