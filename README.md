@@ -29,6 +29,7 @@
 ### Version history
 
 Version 1 released on January 19, 2023.
+
 Modified on March 2022, 2023:
   * Read nd/nd2 files
   * Detect RNA dots with DoG + thresholding instead of Stardist
