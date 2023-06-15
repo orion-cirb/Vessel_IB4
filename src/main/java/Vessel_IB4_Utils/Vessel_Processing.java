@@ -17,6 +17,7 @@ import ij.plugin.RGBStackMerge;
 import ij.plugin.ZProjector;
 import ij.process.AutoThresholder;
 import ij.process.ImageProcessor;
+import ij3d.behaviors.WaitForNextFrameBehavior;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.BufferedWriter;
@@ -65,8 +66,8 @@ public class Vessel_Processing {
     public int dilVessel = 2;
     private String[] thMethods = AutoThresholder.getMethods();
     private String fociThMethod = "Triangle";
-    private String vesselThMethod = "";
-    public double minVesselVol = 5000, maxVesselVol = Double.MAX_VALUE;;
+    private String vesselThMethod = "Triangle";
+    public double minVesselVol = 500, maxVesselVol = Double.MAX_VALUE;;
     public Calibration cal = new Calibration();
     private double pixVol = 0;
     private String urlHelp = "https://github.com/orion-cirb/Vessel_IB4.git";
@@ -270,9 +271,8 @@ public class Vessel_Processing {
         gd.addNumericField("Min foci volume (µm3): ", minFociVol);
         gd.addNumericField("Max foci volume (µm3): ", maxFociVol);
         gd.addMessage("Vessel detection", Font.getFont("Monospace"), Color.blue);
-        gd.addChoice("Threshold method : ",thMethods, thMethods[11]);
+        gd.addChoice("Threshold method : ",thMethods, vesselThMethod);
         gd.addNumericField("Min vessel volume (µm3): ", minVesselVol);
-        gd.addNumericField("Max vessel volume (µm3): ", maxVesselVol);
         gd.addNumericField("Vessel dilatation (µm): ", dilVessel);
         gd.addMessage("Image calibration", Font.getFont("Monospace"), Color.blue);
         gd.addNumericField("XY pixel size (µm): ", cal.pixelWidth);
@@ -290,7 +290,6 @@ public class Vessel_Processing {
         maxFociVol = gd.getNextNumber();
         vesselThMethod = gd.getNextChoice();
         minVesselVol = gd.getNextNumber();
-        maxVesselVol = gd.getNextNumber();
         dilVessel = (int)gd.getNextNumber();
         cal.pixelWidth = cal.pixelHeight = gd.getNextNumber();
         cal.pixelDepth = gd.getNextNumber();
@@ -437,6 +436,7 @@ public class Vessel_Processing {
         ImagePlus imgLOG = new Duplicator().run(imgVessel);
         IJ.run(imgLOG, "Laplacian of Gaussian", "sigma=20 scale_normalised negate stack");
         ImagePlus imgBin = threshold(imgLOG, vesselThMethod, false);
+        imgBin.setCalibration(cal);
         Objects3DIntPopulation ib4Pop = new Objects3DIntPopulation();
         if (!rois.isEmpty()) {
             ImagePlus fillImg = fillImg(imgBin, rois);

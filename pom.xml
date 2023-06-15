@@ -48,10 +48,11 @@
                         <version>6.11.0</version>
                 </dependency>
                 <dependency>
-			<groupId>mcib</groupId>
-			<artifactId>mcib3d-core</artifactId>
-			<version>4.0.93</version>
-		</dependency>
+		<groupId>org.framagit.mcib3d</groupId>
+                <artifactId>mcib3d-core</artifactId>
+                <version>4.1.0</version>
+                   <type>jar</type>
+             </dependency>
                 <dependency>
                         <groupId>ome</groupId>
                         <artifactId>formats-common</artifactId>
