@@ -1,9 +1,7 @@
-
-
 package Vessel_IB4;
 
 
-import Vessel_IB4_Utils.Vessel_Processing;
+import Vessel_IB4_Tools.Tools;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
@@ -30,42 +28,37 @@ import loci.plugins.in.ImporterOptions;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import java.util.Collections;
+import java.util.List;
 import mcib3d.geom2.Objects3DIntPopulation;
 
 
 /**
- *
- * @author phm
+ * Detect vessels and ARN dots
+ * Determine ARN dots volume in/out vessels
+ * @author ORION-CIRB
  */
 public class Vessel_IB4 implements PlugIn {
     
-    private Vessel_IB4_Utils.Vessel_Processing process = new Vessel_Processing();
-    
-    @Override
+    private Vessel_IB4_Tools.Tools tools = new Tools();
+   
     public void run(String arg) {
             try {
-                String imageDir = IJ.getDirectory("Choose directory containing images and rois ...");
+                if (!tools.checkInstalledModules()) {
+                    return;
+                } 
+                
+                String imageDir = IJ.getDirectory("Choose directory containing image files...");
                 if (imageDir == null) {
                     return;
                 }
+                
                 // Find images with extension
-                String file_ext = "nd";
-                ArrayList<String> imageFiles = process.findImages(imageDir, file_ext);
-
+                String fileExt = tools.findImageType(new File(imageDir));
+                ArrayList<String> imageFiles = tools.findImages(imageDir, fileExt);
                 if (imageFiles == null) {
-                    file_ext = "nd2";
-                    imageFiles = process.findImages(imageDir, file_ext);
-                    if (imageFiles == null) {
-                        System.out.println("No Image found in "+imageDir);
-                        return;
-                    }
-                }                                                           
-                // create output folder
-                String outDirResults = imageDir + File.separator+ "Results"+ File.separator;
-                File outDir = new File(outDirResults);
-                if (!Files.exists(Paths.get(outDirResults))) {
-                    outDir.mkdir();
-                }
+                    IJ.showMessage("Error", "No images found with " + fileExt + " extension");
+                    return;
+                }                       
                
                 // Create OME-XML metadata store of the latest schema version
                 ServiceFactory factory;
@@ -75,97 +68,95 @@ public class Vessel_IB4 implements PlugIn {
                 ImageProcessorReader reader = new ImageProcessorReader();
                 reader.setMetadataStore(meta);
                 reader.setId(imageFiles.get(0));
-                String[] channels = process.findChannels(imageFiles.get(0), meta, reader);
-                process.cal = process.findImageCalib(meta);
+                
+                // Find image calibration
+                tools.findImageCalib(meta);
 
+                // Find channel names
+                String[] channels = tools.findChannels(imageFiles.get(0), meta, reader);
+                
                 // Dialog box
-                String[] chs = process.dialog(channels);
+                String[] chs = tools.dialog(channels);
                 if (chs == null) {
-                    IJ.showMessage("Error", "Plugin canceled");
+                    IJ.showStatus("Plugin canceled");
                     return;
                 }
                 
-                 // initialize results files
-                FileWriter  fwAnalyze_detail = new FileWriter(outDirResults +"results.xls",false);
-                BufferedWriter results = new BufferedWriter(fwAnalyze_detail);
-                process.InitResults(results);
+                // Create output folder
+                String outDirResults = imageDir + File.separator+ "Results"+ File.separator;
+                File outDir = new File(outDirResults);
+                if (!Files.exists(Paths.get(outDirResults))) {
+                    outDir.mkdir();
+                }
                 
-                // Image calibration
-                process.findImageCalib(meta);
-                for (String f : imageFiles) {
+                // Write header in results file
+                FileWriter fwResults = new FileWriter(outDirResults +"results.xls",false);
+                BufferedWriter results = new BufferedWriter(fwResults);
+                results.write("Image name\tImage background (median of min intensity stack)\tVessel volume (µm3)\tGeneX Volume in vessel (µm3)\t"
+                        + "GeneX Intensity sum in vessel\tNormalized GeneX Intensity sum in vessel\tGeneX Volume out vessel (µm3)\tGeneX Intensity sum out vessel"
+                        + "\tNornalized GeneX out vessel\n");
+                results.flush();
+                
+                
+                for (String f: imageFiles) {
                     String rootName = FilenameUtils.getBaseName(f);
+                    tools.print("--- ANALYZING IMAGE " + rootName + " ------");
                     reader.setId(f);
-                    reader.setSeries(0);
+                    
                     ImporterOptions options = new ImporterOptions();
-                    options.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);
                     options.setId(f);
                     options.setSplitChannels(true);
-
+                    options.setColorMode(ImporterOptions.COLOR_MODE_GRAYSCALE);
                     options.setQuiet(true);
 
                     // Check if rois file exist, keep rois to clear regions containing "artefacts"
                     ArrayList<Roi> rois = new ArrayList<>();
                     String roiRootName = imageDir + File.separator + rootName; 
-                    String roiFile = new File(roiRootName + ".zip").exists() ? roiRootName + ".zip" : roiRootName + ".roi";
-
-                    if (new File(roiFile).exists()) {
-                        // Find rois
+                    String roiName = new File(roiRootName + ".zip").exists() ? roiRootName + ".zip" : roiRootName + ".roi";
+                    if (new File(roiName).exists()) {
                         RoiManager rm = new RoiManager(false);
                         if (rm != null)
                             rm.reset();
                         else
                             rm = new RoiManager(false);
-                        rm.runCommand("Open", roiFile);
+                        rm.runCommand("Open", roiName);
                         Collections.addAll(rois, rm.getRoisAsArray());
                     }
 
-
-                    /*
-                    * Open Vessel channel
-                    */
+                    // Open vessels channel
+                    tools.print("- Analyzing vessels channel -");
                     int indexCh = ArrayUtils.indexOf(channels, chs[0]);
-                    System.out.println("-- Opening Vessel channel : "+ chs[0]);
                     ImagePlus imgVessel = BF.openImagePlus(options)[indexCh];
+                    Objects3DIntPopulation vesselsPop = tools.findVessels(imgVessel, rois);
 
-                    // Open vessel channel
-
-                    Objects3DIntPopulation vesselsPop = process.findVessel(imgVessel, rois);
-                    process.closeImages(imgVessel);
-
-                    /*
-                    * Open Channel 1 (gene X)
-                    */
+                    // Open geneX channel
+                    tools.print("- Analyzing geneX channel -");
                     indexCh = ArrayUtils.indexOf(channels, chs[1]);
-                    System.out.println("-- Opening gene X channel : " + chs[1]);
                     ImagePlus imgGeneX = BF.openImagePlus(options)[indexCh];
+                    Objects3DIntPopulation geneXPop = tools.findGenes(imgGeneX, rois);
+                    
+                    // Find geneX dots into and out of vessels
+                    List<Objects3DIntPopulation> geneXInOutPops = tools.findGeneXInOutVessels(geneXPop, vesselsPop, imgGeneX);
+                    Objects3DIntPopulation geneXInPop = geneXInOutPops.get(0);
+                    System.out.println(geneXInPop.getNbObjects() + " geneX dots found into vessels");
+                    Objects3DIntPopulation geneXOutPop = geneXInOutPops.get(1);
+                    System.out.println(geneXOutPop.getNbObjects() + " geneX dots found out of vessels");
 
-                    //Find gene X dots
-                    Objects3DIntPopulation geneXPop = process.findGenesPop(imgGeneX, rois);
-                    System.out.println("Finding gene "+geneXPop.getNbObjects()+" X dots");
+                    // Draw results
+                    tools.print("- Drawing and writing results -");
+                    tools.drawResults(imgGeneX, vesselsPop, geneXInPop, geneXOutPop, outDirResults, rootName);
 
-                    // Find gene dots out to Vessels
-                    Objects3DIntPopulation geneOutVessel = process.findGeneIn_OutVessel(geneXPop, vesselsPop, imgGeneX, false);
-                    System.out.println(geneOutVessel.getNbObjects() + " geneX found out of Vessels");
-
-                    // Find gene dots into Vessels
-                    Objects3DIntPopulation geneInVessel = process.findGeneIn_OutVessel(geneXPop, vesselsPop, imgGeneX, true);
-                    System.out.println(geneInVessel.getNbObjects() + " geneX found in Vessels");
-
-                    // Save labelled vessel
-                    process.saveCellsLabelledImage(imgGeneX, vesselsPop, geneInVessel, geneOutVessel, outDirResults, rootName);
-
-                    // Find cells parameters in geneX images
-                    process.writeResults(vesselsPop, geneInVessel, geneOutVessel, imgGeneX, rootName, results);
-                    process.closeImages(imgGeneX);
+                    // Write results
+                    tools.writeResults(results, vesselsPop, geneXInPop, geneXOutPop, imgGeneX, rootName);
+                    
+                    tools.flushCloseImg(imgVessel);
+                    tools.flushCloseImg(imgGeneX);
                 }
-                if (new File(outDirResults + "results.xls").exists())
-                    results.close();
+                results.close();
             } catch (IOException | DependencyException | ServiceException | FormatException ex) {
                     Logger.getLogger(Vessel_IB4.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            IJ.showStatus("Process done ...");
+            tools.print("All done!");
         }
-    
-    
 }
