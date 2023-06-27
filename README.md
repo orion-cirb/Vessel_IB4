@@ -34,3 +34,6 @@ Modified on March 22, 2023:
   * Read nd/nd2 files
   * Detect RNA dots with DoG + thresholding instead of Stardist
   * Ask for RNA dots thresholding method in dialog box
+
+Modified on June 27, 2023:
+  * Corrected volume and intensity measurements given in results table
