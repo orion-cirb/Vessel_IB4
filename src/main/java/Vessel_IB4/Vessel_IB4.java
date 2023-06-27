@@ -92,9 +92,9 @@ public class Vessel_IB4 implements PlugIn {
                 // Write header in results file
                 FileWriter fwResults = new FileWriter(outDirResults +"results.xls",false);
                 BufferedWriter results = new BufferedWriter(fwResults);
-                results.write("Image name\tImage background (median of min intensity stack)\tVessel volume (µm3)\tGeneX Volume in vessel (µm3)\t"
-                        + "GeneX Intensity sum in vessel\tNormalized GeneX Intensity sum in vessel\tGeneX Volume out vessel (µm3)\tGeneX Intensity sum out vessel"
-                        + "\tNornalized GeneX out vessel\n");
+                results.write("Image name\tImage vol (µm3)\tImage-ROI vol (µm3)\tVessels vol (µm3)\tGeneX channel bg\tNb GeneX dots in vessels\tGeneX dots vol in vessels (µm3)\t"
+                        + "GeneX dots int in vessels\tGeneX dots bg corr int in vessels\tNb GeneX dots out vessels\tGeneX dots vol out vessels (µm3)\tGeneX dots int out vessels"
+                        + "\tGeneX dots bg corr int out vessels\n");
                 results.flush();
                 
                 
@@ -147,7 +147,7 @@ public class Vessel_IB4 implements PlugIn {
                     tools.drawResults(imgGeneX, vesselsPop, geneXInPop, geneXOutPop, outDirResults, rootName);
 
                     // Write results
-                    tools.writeResults(results, vesselsPop, geneXInPop, geneXOutPop, imgGeneX, rootName);
+                    tools.writeResults(results, vesselsPop, geneXInPop, geneXOutPop, imgGeneX, rois, rootName);
                     
                     tools.flushCloseImg(imgVessel);
                     tools.flushCloseImg(imgGeneX);

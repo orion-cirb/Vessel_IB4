@@ -4,6 +4,9 @@ package Vessel_IB4_Tools;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.PolygonRoi;
+import ij.measure.ResultsTable;
+import ij.plugin.filter.Analyzer;
 import ij.gui.Roi;
 import ij.io.FileSaver;
 import ij.measure.Calibration;
@@ -12,7 +15,6 @@ import ij.plugin.ImageCalculator;
 import ij.plugin.RGBStackMerge;
 import ij.plugin.ZProjector;
 import ij.process.AutoThresholder;
-import ij.process.ImageProcessor;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.BufferedWriter;
@@ -54,20 +56,20 @@ public class Tools {
     private CLIJ2 clij2 = CLIJ2.getInstance();
     
     public String[] channelNames = {"Vessels", "GeneX"};
-    public Calibration cal = new Calibration();
-    public double pixVol = 0;
+    public Calibration cal;
+    public double pixVol;
   
     // Foci
     private String fociThMethod = "Triangle";
     private double minDOGFoci = 1;
     private double maxDOGFoci = 2;
-    private double minFociVol = 0.05;
-    private double maxFociVol = 50;
+    private double minFociVol = 0.04;
+    private double maxFociVol = 20;
 
     // Vessels
     private String vesselThMethod = "Triangle";
     private int dilVessel = 2;
-    private double minVesselVol = 500;
+    private double minVesselVol = 400;
     private double maxVesselVol = Double.MAX_VALUE;
 
     
@@ -88,13 +90,13 @@ public class Tools {
         try {
             loader.loadClass("net.haesleinhuepf.clij2.CLIJ2");
         } catch (ClassNotFoundException e) {
-            IJ.log("CLIJ not installed, please install from update site");
+            IJ.showMessage("Error", "CLIJ not installed, please install from update site");
             return false;
         }
         try {
-            loader.loadClass("mcib3d.geom");
+            loader.loadClass("mcib3d.geom2.Object3DInt");
         } catch (ClassNotFoundException e) {
-            IJ.log("3D ImageJ Suite not installed, please install from update site");
+            IJ.showMessage("Error", "3D ImageJ Suite not installed, please install from update site");
             return false;
         }
         return true;
@@ -327,7 +329,7 @@ public class Tools {
         
         // Size filtering
         popFilterSize(vesselsPop, minVesselVol, maxVesselVol);
-        System.out.println("Nb vessels remaining after size filtering: "+ vesselsPop);
+        System.out.println("Nb vessels remaining after size filtering: "+ vesselsPop.getNbObjects());
         
         flushCloseImg(imgLOG);
         flushCloseImg(imgBin);
@@ -404,7 +406,7 @@ public class Tools {
         
         // Size filtering
         popFilterSize(genesPop, minFociVol, maxFociVol);
-        System.out.println("Nb geneX foci remaining after size filtering: "+ genesPop);
+        System.out.println("Nb geneX foci remaining after size filtering: "+ genesPop.getNbObjects());
         
         flushCloseImg(imgDup);
         flushCloseImg(imgDOG);
@@ -511,25 +513,51 @@ public class Tools {
      * Write results
      */
     public void writeResults(BufferedWriter results, Objects3DIntPopulation vesselsPop, Objects3DIntPopulation genesXIn, Objects3DIntPopulation genesXOut, 
-            ImagePlus imgGeneX, String imgName) throws IOException {
-        double bg = findBackground(imgGeneX);
+            ImagePlus imgGeneX, ArrayList<Roi> rois, String imgName) throws IOException {
+        
+        double imgVol = imgGeneX.getWidth() * imgGeneX.getHeight() * imgGeneX.getNSlices() * pixVol;
+        double roisVol = getRoisVolume(rois, imgGeneX);
         double vesselsVol = findPopVolume(vesselsPop);
+        
+        double bg = findBackground(imgGeneX);
         double genesXInVol = findPopVolume(genesXIn);
         double genesXInInt = findPopIntensity(genesXIn, imgGeneX);
-        double genesXInIntBgCor = genesXInInt - bg/pixVol;
+        double genesXInIntBgCor = genesXInInt - bg*genesXInVol/pixVol;
         double genesXOutVol = findPopVolume(genesXOut);
         double genesXOutInt = findPopIntensity(genesXOut, imgGeneX);
-        double genesXOutIntBgCor = genesXInInt - bg/pixVol;
+        double genesXOutIntBgCor = genesXOutInt - bg*genesXOutVol/pixVol;
         
-        results.write(imgName+"\t"+bg+"\t"+vesselsVol+"\t"+genesXInVol+"\t"+genesXInInt+"\t"+genesXInIntBgCor+"\t"+
-                      genesXOutVol+"\t"+genesXOutInt+"\t"+genesXOutIntBgCor+"\n");
+        results.write(imgName+"\t"+imgVol+"\t"+(imgVol-roisVol)+"\t"+vesselsVol+"\t"+bg+"\t"+genesXIn.getNbObjects()+"\t"+genesXInVol+"\t"+genesXInInt+"\t"+genesXInIntBgCor+"\t"+
+                      genesXOut.getNbObjects()+"\t"+genesXOutVol+"\t"+genesXOutInt+"\t"+genesXOutIntBgCor+"\n");
         results.flush();
     }
     
     
     /**
+     * Compute ROIs total volume
+     */
+    public double getRoisVolume(ArrayList<Roi> rois, ImagePlus img) {
+        double roisVol = 0;
+        for(Roi roi: rois) {
+            PolygonRoi poly = new PolygonRoi(roi.getFloatPolygon(), Roi.FREEROI);
+            poly.setLocation(0, 0);
+            
+            img.resetRoi();
+            img.setRoi(poly);
+
+            ResultsTable rt = new ResultsTable();
+            Analyzer analyzer = new Analyzer(img, Analyzer.AREA, rt);
+            analyzer.measure();
+            roisVol += rt.getValue("Area", 0);
+        }
+
+        return(roisVol * img.getNSlices() * cal.pixelDepth);
+    }
+    
+    
+    /**
      * Find image background intensity:
-     * Perform zrojection over min intensity + read median intensity
+     * Perform z-projection over min intensity + read median intensity
      */
     public double findBackground(ImagePlus img) {
       ImagePlus imgProj = doZProjection(img, ZProjector.MIN_METHOD);
