@@ -11,7 +11,7 @@
         <packaging>jar</packaging>
 	<name>plugins/Vessel_IB4</name>
 	<description>
-            Detection dots in vessels associated and in extra vessel compartment
+            Detection of RNA dots in and out vessels
         </description>
 
 	<developers>
@@ -19,6 +19,17 @@
 			<id>phm</id>
 			<name>Philippe Mailly</name>
 			<email>philippe.mailly@college-de-france.fr</email>
+			<url></url>
+			<organization>CIRB, Collège de France</organization>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>-1</timezone>
+		</developer>
+                <developer>
+			<id>hm</id>
+			<name>Héloïse Monnet</name>
+			<email>heloise.monnet@college-de-france.fr</email>
 			<url></url>
 			<organization>CIRB, Collège de France</organization>
 			<roles>
